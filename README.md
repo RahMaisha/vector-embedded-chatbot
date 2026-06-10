@@ -1,115 +1,208 @@
-# Building Knowledge Extraction Pipeline with Docling
+# Multilingual RAG Pipeline
 
-[Docling](https://github.com/DS4SD/docling) is a powerful, flexible open source document processing library that converts various document formats into a unified format. It has advanced document understanding capabilities powered by state-of-the-art AI models for layout analysis and table structure recognition.
+A production-ready Retrieval-Augmented Generation (RAG) pipeline that supports **web scraping**, **PDF extraction**, **Bangla and English documents**, and **semantic search** via vector embeddings. Drop in any URLs or PDFs, embed them, store in Pinecone, and chat with your knowledge base.
 
-The whole system runs locally on standard computers and is designed to be extensible - developers can add new models or modify the pipeline for specific needs. It's particularly useful for tasks like enterprise document search, passage retrieval, and knowledge extraction. With its advanced chunking and processing capabilities, it's the perfect tool for providing GenAI applications with knowledge through RAG (Retrieval Augmented Generation) pipelines.
+---
 
-## Key Features
+## What It Does
 
-- **Universal Format Support**: Process PDF, DOCX, XLSX, PPTX, Markdown, HTML, images, and more
-- **Advanced Understanding**: AI-powered layout analysis and table structure recognition
-- **Flexible Output**: Export to HTML, Markdown, JSON, or plain text
-- **High Performance**: Efficient processing on local hardware
+- Scrapes any website for content via configurable URLs
+- Extracts text from **any PDF** — English or Bangla
+- Uses **OCR** (Tesseract) automatically for Bangla PDFs or scanned documents
+- Chunks content **paragraph by paragraph** for high-quality retrieval
+- Embeds using **Mistral `mistral-embed`** (1024-dim vectors)
+- Stores in **Pinecone** under a configurable namespace
+- Export/import vectors as JSON to share knowledge bases with others
+- Includes a **Streamlit chat UI** for querying the knowledge base in natural language
 
-## Things They're Working on
+---
 
-- Metadata extraction, including title, authors, references & language
-- Inclusion of Visual Language Models (SmolDocling)
-- Chart understanding (Barchart, Piechart, LinePlot, etc)
-- Complex chemistry understanding (Molecular structures)
+## Project Structure
 
-## Getting Started with the Example
+```
+├── pdfs/                        # Drop your PDF files here
+├── utils/
+│   ├── __init__.py
+│   ├── sitemap.py               # Sitemap URL extractor
+│   └── tokenizer.py             # OpenAI tokenizer wrapper
+├── 1-extraction.py              # Web scraping with Docling
+├── 2-chunking.py                # Hybrid chunking demo
+├── 3-embedding.py               # LanceDB + Mistral embeddings
+├── 3-embedding-pinecone.py      # Web scraping → Pinecone
+├── 3-embedding-simple.py        # Web scraping → LanceDB (simple)
+├── 4-search.py                  # Vector search test
+├── 5-chat.py                    # Streamlit chat UI (LanceDB)
+├── 5-chat-pinecone.py           # Streamlit chat UI (Pinecone) ← main app
+├── pdf-to-pinecone.py           # PDF → OCR → embed → Pinecone
+├── export-vectors.py            # Export Pinecone vectors to JSON
+├── import-vectors.py            # Import vectors from JSON into Pinecone
+├── create-index.py              # Create Pinecone index
+├── requirements.txt
+└── .env                         # API keys (never commit this)
+```
 
-### Prerequisites
+---
 
-1. Install the required packages:
+## Setup
+
+### 1. Clone the repo
+
+```bash
+git clone https://github.com/yourusername/your-repo-name.git
+cd your-repo-name
+```
+
+### 2. Create and activate virtual environment
+
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\Activate.ps1
+
+# Mac/Linux
+source .venv/bin/activate
+```
+
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements.txt
+pip install pdfplumber pdf2image pytesseract
 ```
 
-2. Set up your environment variables by creating a `.env` file:
+### 4. Install Tesseract OCR (for Bangla or scanned PDFs)
+
+Download from: https://github.com/UB-Mannheim/tesseract/wiki
+
+During installation check **Additional language data → Bengali** (or any other language you need)
+
+Default path: `C:\Program Files\Tesseract-OCR\tesseract.exe`
+
+### 5. Install Poppler (required by pdf2image)
+
+Download from: https://github.com/oschwartz10612/poppler-windows/releases
+
+Extract to `C:\poppler\` then either:
+- Add `C:\poppler\Library\bin` to your system PATH, or
+- Set `poppler_path=r"C:\poppler\Library\bin"` in `pdf-to-pinecone.py`
+
+### 6. Configure environment variables
+
+Create a `.env` file in the project root:
+
+```env
+MISTRAL_API_KEY=your_mistral_api_key
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_HOST=https://your-index-host.pinecone.io
+PINECONE_INDEX=your-index-name
+```
+
+Get your keys from:
+- Mistral: https://console.mistral.ai
+- Pinecone: https://app.pinecone.io
+
+---
+
+## Usage
+
+### Step 1 — Create Pinecone index (first time only)
 
 ```bash
-OPENAI_API_KEY=your_api_key_here
+python create-index.py
 ```
 
-### Running the Example
+### Step 2 — Scrape websites and push to Pinecone
 
-Execute the files in order to build and query the document database:
+Edit the `SOURCES` list in `3-embedding-pinecone.py` to add your own URLs:
 
-1. Extract document content: `python 1-extraction.py`
-2. Create document chunks: `python 2-chunking.py`
-3. Create embeddings and store in LanceDB: `python 3-embedding.py`
-4. Test basic search functionality: `python 4-search.py`
-5. Launch the Streamlit chat interface: `streamlit run 5-chat.py`
+```python
+SOURCES = [
+    {"url": "https://yourwebsite.com/page1", "selector": "article"},
+    {"url": "https://yourwebsite.com/page2", "selector": "main"},
+]
+```
 
-Then open your browser and navigate to `http://localhost:8501` to interact with the document Q&A interface.
+Then run:
 
-## Document Processing
+```bash
+python 3-embedding-pinecone.py
+```
 
-### Supported Input Formats
+### Step 3 — Process PDFs and push to Pinecone
 
-| Format | Description |
-|--------|-------------|
-| PDF | Native PDF documents with layout preservation |
-| DOCX, XLSX, PPTX | Microsoft Office formats (2007+) |
-| Markdown | Plain text with markup |
-| HTML/XHTML | Web documents |
-| Images | PNG, JPEG, TIFF, BMP |
-| USPTO XML | Patent documents |
-| PMC XML | PubMed Central articles |
+Drop any PDF files (English, Bangla, or other languages) into the `pdfs/` folder:
 
-Check out this [page](https://ds4sd.github.io/docling/supported_formats/) for an up to date list.
+```bash
+python pdf-to-pinecone.py
+```
 
-### Processing Pipeline
+The script auto-detects:
+- **Normal PDFs** → fast direct text extraction
+- **Bangla / scanned PDFs** → automatic OCR fallback
 
-The standard pipeline includes:
+### Step 4 — Launch chat UI
 
-1. Document parsing with format-specific backend
-2. Layout analysis using AI models
-3. Table structure recognition
-4. Metadata extraction
-5. Content organization and structuring
-6. Export formatting
+```bash
+python -m streamlit run 5-chat-pinecone.py
+```
 
-## Models
+Open http://localhost:8501 in your browser and start querying your knowledge base.
 
-Docling leverages two primary specialized AI models for document understanding. At its core, the layout analysis model is built on the `RT-DETR (Real-Time Detection Transformer)` architecture, which excels at detecting and classifying page elements. This model processes pages at 72 dpi resolution and can analyze a single page in under a second on a standard CPU, having been trained on the comprehensive `DocLayNet` dataset.
+---
 
-The second key model is `TableFormer`, a table structure recognition system that can handle complex table layouts including partial borders, empty cells, spanning cells, and hierarchical headers. TableFormer typically processes tables in 2-6 seconds on CPU, making it efficient for practical use. 
+## Sharing Your Knowledge Base
 
-For documents requiring text extraction from images, Docling integrates `EasyOCR` as an optional component, which operates at 216 dpi for optimal quality but requires about 30 seconds per page. Both the layout analysis and TableFormer models were developed by IBM Research and are publicly available as pre-trained weights on Hugging Face under "ds4sd/docling-models".
+Export vectors to a JSON file and share with anyone:
 
-For more detailed information about these models and their implementation, you can refer to the [technical documentation](https://arxiv.org/pdf/2408.09869).
+```bash
+python export-vectors.py
+# → creates vectors-export.json
+```
 
-## Chunking
+The recipient runs:
 
-When you're building a RAG (Retrieval Augmented Generation) application, you need to break down documents into smaller, meaningful pieces that can be easily searched and retrieved. But this isn't as simple as just splitting text every X words or characters.
+```bash
+python import-vectors.py
+# → imports into their own Pinecone index
+```
 
-What makes [Docling's chunking](https://ds4sd.github.io/docling/concepts/chunking/) unique is that it understands the actual structure of your document. It has two main approaches:
+No re-scraping or re-embedding needed — the full vector knowledge base transfers instantly.
 
-1. The [Hierarchical Chunker](https://ds4sd.github.io/docling/concepts/chunking/#hierarchical-chunker) is like a smart document analyzer - it knows where the natural "joints" of your document are. Instead of blindly cutting text into fixed-size pieces, it recognizes and preserves important elements like sections, paragraphs, tables, and lists. It maintains the relationship between headers and their content, and keeps related items together (like items in a list).
+---
 
-2. The [Hybrid Chunker](https://ds4sd.github.io/docling/concepts/chunking/#hybrid-chunker) takes this a step further. It starts with the hierarchical chunks but then:
-   - It can split chunks that are too large for your embedding model
-   - It can stitch together chunks that are too small
-   - It works with your specific tokenizer, so the chunks will fit perfectly with your chosen language model
+## Customisation
 
-### Why is this great for RAG applications?
+| What to change | Where |
+|---|---|
+| URLs to scrape | `SOURCES` list in `3-embedding-pinecone.py` |
+| PDF folder path | `PDF_FOLDER` in `pdf-to-pinecone.py` |
+| OCR language | `OCR_LANG` in `pdf-to-pinecone.py` (e.g. `"ben+eng"`, `"ara"`, `"hin"`) |
+| Pinecone namespace | `NAMESPACE` in any script |
+| Chunk size | `MIN_WORDS` / `MAX_WORDS` in embedding scripts |
+| Embedding model | `model` field in `embed_texts()` function |
+| Chat LLM | `model` field in `chat()` in `5-chat-pinecone.py` |
 
-Imagine you're building a system to answer questions about technical documents. With basic chunking (like splitting every 500 words), you might cut right through the middle of a table, or separate a header from its content. But Docling's smart chunking:
+---
 
-- Keeps related information together
-- Preserves document structure
-- Maintains context (like headers and captions)
-- Creates chunks that are optimized for your specific embedding model
-- Ensures each chunk is meaningful and self-contained
+## Tech Stack
 
-This means when your RAG system retrieves chunks, they'll have the proper context and structure, leading to more accurate and coherent responses from your language model.
+| Component | Technology |
+|---|---|
+| Web scraping | `requests` + `BeautifulSoup` |
+| PDF extraction | `pdfplumber` |
+| OCR | `Tesseract` + `pytesseract` + `pdf2image` |
+| Embeddings | Mistral `mistral-embed` (1024-dim) |
+| Vector database | Pinecone (serverless) |
+| Chat UI | Streamlit |
+| LLM | Mistral `mistral-large-latest` |
 
-## Documentation
+---
 
-For full documentation, visit [documentation site](https://ds4sd.github.io/docling/).
+## Notes
 
-For example notebooks and more detailed guides, check out [GitHub repository](https://github.com/DS4SD/docling).
+- `.env`, `pdfs/`, and `data/` are gitignored — never commit API keys or raw documents
+- All vectors land in Pinecone namespace `workspace` by default — change `NAMESPACE` to segment different topics
+- Bangla OCR quality depends on scan resolution — 300 DPI gives the best results
+- Mistral rate limits are handled automatically with retry logic
+- To use a different embedding model, update both the embedding script and `create-index.py` (dimensions must match)

@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <style>
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:#f7fafc;color:#111;margin:0;padding:0}
+    .container{max-width:900px;margin:40px auto;padding:20px;background:#fff;border-radius:8px;box-shadow:0 6px 18px rgba(15,23,42,.08)}
+    h1{margin-top:0}
+    form{display:flex;flex-direction:column;gap:10px}
+    input[type=text],textarea{padding:10px;border:1px solid #e6edf3;border-radius:6px;width:100%}
+    button{background:#0b78e3;color:#fff;padding:10px 14px;border:none;border-radius:6px;cursor:pointer}
+    .row{display:flex;gap:16px}
+    .col{flex:1}
+    pre{background:#0f1724;color:#e6eef8;padding:12px;border-radius:6px;overflow:auto}
+    label{font-weight:600}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Dashboard</h1>
+    <p>Upload a PDF or submit a web link to ingest into the vector DB. Manage user-route placeholder below.</p>
+
+    <h3>Upload PDF</h3>
+    <form id="pdfForm">
+      <input type="file" id="pdfFile" name="pdf" accept="application/pdf" required />
+      <div class="row">
+        <div class="col"><button type="submit">Upload & Ingest</button></div>
+        <div class="col"><button type="button" id="listPdfs">List PDFs</button></div>
+      </div>
+    </form>
+    <pre id="pdfResult"></pre>
+
+    <h3>Ingest Web Link</h3>
+    <form id="urlForm">
+      <input type="text" id="urlInput" placeholder="https://example.com/article" required />
+      <div class="row">
+        <div class="col"><button type="submit">Ingest URL</button></div>
+        <div class="col"><button type="button" id="statusBtn">Check Status</button></div>
+      </div>
+    </form>
+    <pre id="urlResult"></pre>
+
+    <h3>Users (admin only)</h3>
+    <div id="loginBox">
+      <p><strong>Admin login</strong> — use the hardcoded admin credentials on the server.</p>
+      <input type="text" id="adminEmail" placeholder="admin@example.com" />
+      <input type="password" id="adminPass" placeholder="password" />
+      <div class="row">
+        <div class="col"><button id="loginBtn">Login</button></div>
+        <div class="col"><button id="logoutBtn" style="display:none">Logout</button></div>
+      </div>
+    </div>
+
+    <div id="usersPanel" style="display:none">
+      <p>Fetched from external users API (proxied via server).</p>
+      <div class="row">
+        <div class="col"><input type="text" id="newUserEmail" placeholder="newuser@example.com" /></div>
+        <div class="col"><button id="addUserBtn">Add User</button></div>
+      </div>
+      <pre id="usersResult"></pre>
+    </div>
+
+    <h3>Logs</h3>
+    <pre id="log">Ready.</pre>
+  </div>
+
+  <script>
+    const pdfForm = document.getElementById('pdfForm');
+    const pdfResult = document.getElementById('pdfResult');
+    const log = document.getElementById('log');
+
+    pdfForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const file = document.getElementById('pdfFile').files[0];
+      if(!file) return;
+      const fd = new FormData();
+      fd.append('pdf', file);
+      pdfResult.textContent = 'Uploading...';
+      const res = await fetch('/upload_pdf', {method:'POST', body:fd});
+      const data = await res.json();
+      pdfResult.textContent = JSON.stringify(data, null, 2);
+      log.textContent = `Uploaded ${file.name}: ${data.status}`;
+    });
+
+    document.getElementById('listPdfs').addEventListener('click', async () => {
+      const res = await fetch('/list_pdfs');
+      const data = await res.json();
+      pdfResult.textContent = JSON.stringify(data, null, 2);
+    });
+
+    const urlForm = document.getElementById('urlForm');
+    const urlResult = document.getElementById('urlResult');
+    urlForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('urlInput').value.trim();
+      if(!url) return;
+      urlResult.textContent = 'Submitting...';
+      const res = await fetch('/ingest_url', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({url})});
+      const data = await res.json();
+      urlResult.textContent = JSON.stringify(data, null, 2);
+      log.textContent = `Ingest URL: ${url} → ${data.status}`;
+    });
+
+    document.getElementById('statusBtn').addEventListener('click', async () => {
+      const res = await fetch('/status');
+      const data = await res.json();
+      urlResult.textContent = JSON.stringify(data, null, 2);
+    });
+
+    // Admin login + users panel
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const usersPanel = document.getElementById('usersPanel');
+    const usersResultEl = document.getElementById('usersResult');
+
+    async function fetchUsers() {
+      usersResultEl.textContent = 'Loading users...';
+      const res = await fetch('/admin/users');
+      if (res.status === 401) {
+        usersResultEl.textContent = 'Unauthorized. Please login.';
+        return;
+      }
+      const data = await res.json();
+      usersResultEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    loginBtn.addEventListener('click', async () => {
+      const email = document.getElementById('adminEmail').value.trim();
+      const pass = document.getElementById('adminPass').value.trim();
+      const res = await fetch('/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass})});
+      if (res.ok) {
+        document.getElementById('loginBox').style.display = 'none';
+        document.getElementById('usersPanel').style.display = 'block';
+        logoutBtn.style.display = 'inline-block';
+        fetchUsers();
+      } else {
+        const d = await res.json();
+        usersResultEl.textContent = 'Login failed: ' + (d.detail || '');
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/logout', {method:'POST'});
+      document.getElementById('loginBox').style.display = 'block';
+      document.getElementById('usersPanel').style.display = 'none';
+      logoutBtn.style.display = 'none';
+      usersResultEl.textContent = '';
+    });
+
+    document.getElementById('addUserBtn').addEventListener('click', async () => {
+      const email = document.getElementById('newUserEmail').value.trim();
+      if (!email) return;
+      const res = await fetch('/admin/users/add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email})});
+      const data = await res.json();
+      usersResultEl.textContent = JSON.stringify(data, null, 2);
+      fetchUsers();
+    });
+
+    // Helper: delete user by id (not shown in UI table; users API should return ids)
+    async function deleteUser(id) {
+      const res = await fetch('/admin/users/delete/' + encodeURIComponent(id), {method:'DELETE'});
+      const data = await res.json();
+      usersResultEl.textContent = JSON.stringify(data, null, 2);
+      fetchUsers();
+    }
+
+  </script>
+</body>
+</html>

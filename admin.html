@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>নীরা · Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #f0eefa;
+  --bg2:        #e8e2f8;
+  --surface:    #ffffff;
+  --surface2:   #f7f4fe;
+  --border:     #ddd6f5;
+  --border2:    #c9bfee;
+  --accent:     #7c3aed;
+  --accent-mid: #9061f9;
+  --accent-lt:  #ede9fe;
+  --accent2:    #a78bfa;
+  --danger:     #ef4444;
+  --danger-lt:  #fee2e2;
+  --warn:       #f59e0b;
+  --warn-lt:    #fef3c7;
+  --ok:         #10b981;
+  --ok-lt:      #d1fae5;
+  --text:       #1e1b4b;
+  --text2:      #4c4580;
+  --muted:      #9088bc;
+  --mono:       'DM Mono', monospace;
+  --sans:       'Plus Jakarta Sans', sans-serif;
+  --radius:     16px;
+  --shadow:     0 2px 20px rgba(124,58,237,.08);
+  --shadow-lg:  0 8px 40px rgba(124,58,237,.15);
+  --sidebar-w:  272px;
+  --topbar-h:   64px;
+}
+
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.55;
+}
+
+/* ─── LOGIN ────────────────────────────────── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; flex-direction: column; gap: 1.5rem;
+  background: linear-gradient(145deg,#ede9fe 0%,#f0eefa 40%,#e8e2f8 100%);
+  animation: fadeUp .45s ease both; padding: 1.25rem;
+}
+#login-screen::before,#login-screen::after {
+  content:''; position:fixed; border-radius:50%; pointer-events:none;
+}
+#login-screen::before {
+  width:520px;height:520px;top:-150px;left:-150px;
+  background:radial-gradient(circle,rgba(124,58,237,.13) 0%,transparent 70%);
+}
+#login-screen::after {
+  width:420px;height:420px;bottom:-100px;right:-100px;
+  background:radial-gradient(circle,rgba(167,139,250,.16) 0%,transparent 70%);
+}
+.login-card {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:24px;padding:2.75rem 2.5rem;width:100%;max-width:430px;
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;
+  gap:1.4rem;position:relative;z-index:1;
+}
+.login-brand { display:flex;align-items:center;gap:.8rem;margin-bottom:.25rem; }
+.login-brand-icon { width:48px;height:48px;border-radius:14px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.3rem; }
+.login-brand-name { font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-.5px; }
+.login-brand-tag  { font-size:.75rem;color:var(--muted);font-family:var(--mono); }
+.login-title { font-size:1.15rem;font-weight:700;color:var(--text); }
+.login-sub   { font-size:.875rem;color:var(--muted);margin-top:.25rem; }
+.login-err {
+  font-size:.84rem;color:var(--danger);background:var(--danger-lt);
+  border:1px solid #fca5a5;border-radius:10px;padding:.65rem 1rem;display:none;
+}
+
+/* ─── FIELDS ────────────────────────────────── */
+.field { display:flex;flex-direction:column;gap:.45rem; }
+.field label {
+  font-size:.76rem;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.08em;
+}
+input[type=email],input[type=password],input[type=text],
+input[type=url],select,textarea {
+  width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:11px;color:var(--text);font-family:var(--sans);
+  font-size:1rem;padding:.85rem 1.1rem;outline:none;
+  transition:border .2s,box-shadow .2s;
+}
+input:focus,select:focus,textarea:focus {
+  border-color:var(--accent-mid);box-shadow:0 0 0 3px rgba(124,58,237,.12);background:white;
+}
+input::placeholder { color:var(--muted); }
+textarea { resize:vertical;min-height:90px;font-family:var(--mono);font-size:.9rem; }
+
+/* ─── BUTTONS ────────────────────────────────── */
+.btn {
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-family:var(--sans);font-size:.9rem;font-weight:600;
+  padding:.75rem 1.5rem;border-radius:11px;border:none;
+  cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-primary { background:var(--accent);color:white;box-shadow:0 2px 12px rgba(124,58,237,.3); }
+.btn-primary:hover { background:#6d28d9;box-shadow:0 4px 20px rgba(124,58,237,.42);transform:translateY(-1px); }
+.btn-soft { background:var(--accent-lt);color:var(--accent);border:1.5px solid var(--border2); }
+.btn-soft:hover { background:#ddd6fe; }
+.btn-ghost { background:transparent;color:var(--text2);border:1.5px solid var(--border); }
+.btn-ghost:hover { background:var(--surface2);border-color:var(--border2); }
+.btn-danger { background:var(--danger-lt);color:var(--danger);border:1.5px solid #fca5a5; }
+.btn-danger:hover { background:#fecaca; }
+.btn-ok { background:var(--ok-lt);color:var(--ok);border:1.5px solid #6ee7b7; }
+.btn-ok:hover { background:#a7f3d0; }
+.btn:disabled { opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important; }
+.btn-full { width:100%;justify-content:center; }
+.btn svg { width:16px;height:16px;flex-shrink:0; }
+.btn-sm { font-size:.8rem;padding:.5rem 1rem;border-radius:9px; }
+.btn-sm svg { width:14px;height:14px; }
+
+/* ─── APP SHELL ──────────────────────────────── */
+#app { display:none;min-height:100vh; }
+
+/* ─── MOBILE TOPBAR ──────────────────────────── */
+.mobile-topbar {
+  display:none;position:fixed;top:0;left:0;right:0;
+  height:var(--topbar-h);background:var(--surface);
+  border-bottom:1.5px solid var(--border);
+  align-items:center;padding:0 1.25rem;gap:1rem;
+  z-index:300;box-shadow:0 2px 12px rgba(124,58,237,.07);
+}
+.topbar-brand { display:flex;align-items:center;gap:.65rem;flex:1; }
+.topbar-icon { width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.95rem; }
+.topbar-name { font-size:1.05rem;font-weight:800;color:var(--text); }
+.hamburger {
+  background:none;border:1.5px solid var(--border);cursor:pointer;
+  padding:.45rem;border-radius:9px;color:var(--text2);display:flex;transition:all .15s;
+}
+.hamburger:hover { background:var(--surface2);border-color:var(--border2); }
+.hamburger svg { width:20px;height:20px; }
+
+/* ─── SIDEBAR ────────────────────────────────── */
+.sidebar-overlay {
+  display:none;position:fixed;inset:0;
+  background:rgba(30,27,74,.3);backdrop-filter:blur(4px);z-index:250;
+}
+.sidebar-overlay.open { display:block;animation:fadeIn .2s ease; }
+.sidebar {
+  position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;
+  background:var(--surface);border-right:1.5px solid var(--border);
+  display:flex;flex-direction:column;padding:1.75rem 1.25rem;
+  z-index:260;box-shadow:3px 0 24px rgba(124,58,237,.06);
+  overflow-y:auto;transition:transform .25s cubic-bezier(.4,0,.2,1);
+}
+.sb-brand { display:flex;align-items:center;gap:.7rem;margin-bottom:.3rem; }
+.sb-brand-icon { width:38px;height:38px;border-radius:11px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1rem; }
+.sb-brand-name { font-size:1.05rem;font-weight:800;color:var(--text);letter-spacing:-.4px; }
+.sb-tag { font-family:var(--mono);font-size:.67rem;color:var(--muted);margin-bottom:1.85rem;padding-left:.25rem; }
+.nav-section {
+  font-family:var(--mono);font-size:.65rem;font-weight:600;
+  color:var(--muted);text-transform:uppercase;letter-spacing:.12em;
+  padding:.6rem 0 .45rem .65rem;margin-top:.25rem;
+}
+.nav-item {
+  display:flex;align-items:center;gap:.7rem;
+  padding:.75rem .9rem;border-radius:11px;
+  cursor:pointer;font-size:.925rem;font-weight:500;
+  color:var(--text2);transition:all .15s;margin-bottom:.15rem;user-select:none;
+}
+.nav-item svg { width:18px;height:18px;flex-shrink:0; }
+.nav-item:hover { background:var(--surface2);color:var(--text); }
+.nav-item.active { background:var(--accent-lt);color:var(--accent);font-weight:700; }
+.sb-bottom { margin-top:auto;border-top:1.5px solid var(--border);padding-top:1.1rem; }
+.sb-user { font-size:.85rem;font-weight:500;color:var(--text2);display:flex;align-items:center;gap:.6rem;padding:.5rem .65rem;margin-bottom:.6rem; }
+.sb-dot { width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 7px var(--ok);flex-shrink:0; }
+
+/* ─── MAIN ───────────────────────────────────── */
+.main { margin-left:var(--sidebar-w);padding:2.75rem 3rem;animation:fadeUp .35s ease both;min-height:100vh; }
+.page { display:none; }
+.page.active { display:block; }
+.page-header {
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:2.25rem;padding-bottom:1.5rem;
+  border-bottom:1.5px solid var(--border);gap:1rem;flex-wrap:wrap;
+}
+.ph-actions { display:flex;gap:.75rem;align-items:center;flex-wrap:wrap; }
+.page-title { font-size:1.8rem;font-weight:800;letter-spacing:-.6px;color:var(--text); }
+.page-sub { font-size:.9rem;color:var(--muted);margin-top:.35rem; }
+
+/* ─── CARDS ──────────────────────────────────── */
+.card {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:2rem;box-shadow:var(--shadow);
+}
+.card-title {
+  font-size:.78rem;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:1.5rem;display:flex;align-items:center;gap:.55rem;
+}
+.card-title svg { width:15px;height:15px; }
+.grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:1.5rem; }
+.grid-3 { display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem; }
+
+/* ─── STAT CARDS ─────────────────────────────── */
+.stat-card {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:1.85rem 2rem;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.stat-card::after {
+  content:'';position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,var(--stat-color,var(--accent)) 0%,transparent 70%);opacity:.1;
+}
+.stat-label { font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.09em; }
+.stat-value { font-size:2.8rem;font-weight:800;color:var(--stat-color,var(--accent));margin-top:.3rem;font-variant-numeric:tabular-nums;line-height:1.1; }
+.stat-delta { font-size:.8rem;color:var(--muted);margin-top:.4rem; }
+
+/* ─── FORMS ──────────────────────────────────── */
+.form-row { display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem; }
+.form-full { margin-bottom:1.25rem; }
+.hint { font-family:var(--mono);font-size:.73rem;color:var(--muted);margin-top:.35rem;line-height:1.5; }
+
+/* ─── TABS ───────────────────────────────────── */
+.tabs {
+  display:flex;gap:.3rem;margin-bottom:1.5rem;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:13px;padding:.35rem;width:fit-content;box-shadow:var(--shadow);
+}
+.tab-btn {
+  font-family:var(--sans);font-size:.875rem;font-weight:600;
+  padding:.6rem 1.4rem;border-radius:10px;border:none;
+  background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.tab-btn.active { background:var(--accent-lt);color:var(--accent); }
+.tab-btn:hover:not(.active) { color:var(--text);background:var(--surface2); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ─── NAMESPACE PILLS ────────────────────────── */
+.ns-pills { display:flex;gap:.45rem;flex-wrap:wrap;margin-top:.5rem; }
+.ns-pill {
+  font-family:var(--mono);font-size:.73rem;padding:.28rem .7rem;
+  border-radius:20px;border:1.5px solid var(--border);
+  color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.ns-pill:hover,.ns-pill.active { border-color:var(--accent-mid);color:var(--accent);background:var(--accent-lt); }
+
+/* ─── JOB PANEL ──────────────────────────────── */
+.job-panel {
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:13px;padding:1.35rem 1.5rem;margin-top:1.5rem;
+}
+.job-row { display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem; }
+.job-id { font-family:var(--mono);font-size:.8rem;color:var(--accent); }
+.status-badge {
+  font-family:var(--mono);font-size:.7rem;padding:.3rem .75rem;
+  border-radius:7px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;
+}
+.status-queued  { background:var(--warn-lt);  color:var(--warn); }
+.status-running { background:#dbeafe;          color:#2563eb; }
+.status-done    { background:var(--ok-lt);     color:var(--ok); }
+.status-failed  { background:var(--danger-lt); color:var(--danger); }
+.progress-wrap { background:var(--border);border-radius:99px;height:6px;margin:.9rem 0;overflow:hidden; }
+.progress-bar  { height:100%;background:linear-gradient(90deg,var(--accent-mid),var(--accent));border-radius:99px;transition:width .3s; }
+@keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+.progress-bar.indeterminate {
+  width:45%;
+  background:linear-gradient(90deg,transparent,var(--accent-mid),transparent);
+  background-size:400px 6px;animation:shimmer 1.2s linear infinite;
+}
+.job-log { font-family:var(--mono);font-size:.78rem;color:var(--muted);max-height:220px;overflow-y:auto;line-height:2; }
+.log-time { color:var(--border2);margin-right:.55rem; }
+.log-ok   { color:var(--ok); }
+.log-err  { color:var(--danger); }
+.log-info { color:var(--accent); }
+
+/* ─── DROP ZONE ──────────────────────────────── */
+.drop-zone {
+  border:2.5px dashed var(--border2);border-radius:14px;
+  padding:2.75rem;text-align:center;cursor:pointer;
+  transition:all .2s;background:var(--surface2);
+}
+.drop-zone:hover { border-color:var(--accent-mid);background:var(--accent-lt); }
+.drop-zone-icon { font-size:2.4rem;margin-bottom:.65rem; }
+.drop-zone-label { font-size:.9rem;color:var(--muted); }
+
+/* ─── ALERTS ─────────────────────────────────── */
+.alert {
+  display:flex;align-items:flex-start;gap:.8rem;
+  padding:.95rem 1.15rem;border-radius:11px;font-size:.85rem;margin-bottom:1.1rem;line-height:1.55;
+}
+.alert svg { width:16px;height:16px;flex-shrink:0;margin-top:2px; }
+.alert-warn { background:var(--warn-lt);border:1.5px solid #fcd34d;color:#92400e; }
+.alert-ok   { background:var(--ok-lt);  border:1.5px solid #6ee7b7;color:#065f46; }
+.alert-err  { background:var(--danger-lt);border:1.5px solid #fca5a5;color:#991b1b; }
+.alert-info { background:var(--accent-lt);border:1.5px solid var(--border2);color:var(--accent); }
+
+/* ─── TABLE ──────────────────────────────────── */
+.table-wrap { overflow-x:auto;-webkit-overflow-scrolling:touch; }
+.data-table { width:100%;border-collapse:collapse;font-size:.925rem;min-width:540px; }
+.data-table th {
+  font-size:.73rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.09em;color:var(--muted);text-align:left;
+  padding:.9rem 1.15rem;border-bottom:1.5px solid var(--border);
+}
+.data-table td { padding:1.05rem 1.15rem;border-bottom:1.5px solid var(--border);vertical-align:middle; }
+.data-table tr:last-child td { border-bottom:none; }
+.data-table tbody tr:hover td { background:var(--surface2); }
+.user-avatar {
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent-mid),var(--accent));
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:700;color:white;flex-shrink:0;
+}
+.user-info { display:flex;align-items:center;gap:.75rem; }
+.badge {
+  font-family:var(--mono);font-size:.69rem;font-weight:700;
+  padding:.28rem .7rem;border-radius:7px;text-transform:uppercase;letter-spacing:.07em;
+}
+.badge-admin { background:var(--accent-lt);color:var(--accent);border:1px solid var(--border2); }
+.badge-user  { background:var(--surface2); color:var(--muted);  border:1px solid var(--border); }
+.tag {
+  display:inline-block;font-family:var(--mono);font-size:.72rem;
+  padding:.28rem .7rem;border-radius:7px;
+  background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+}
+
+/* ─── SOURCE PILL ────────────────────────────── */
+.source-pill {
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-family:var(--mono);font-size:.7rem;font-weight:600;
+  padding:.3rem .8rem;border-radius:20px;letter-spacing:.04em;
+}
+.source-pill-ext   { background:#ecfdf5;color:#059669;border:1.5px solid #6ee7b7; }
+.source-pill-local { background:var(--surface2);color:var(--muted);border:1.5px solid var(--border); }
+.source-pill svg { width:12px;height:12px; }
+
+/* ─── TOGGLE SWITCH ──────────────────────────── */
+.toggle-wrap { display:inline-flex;align-items:center;gap:.6rem;cursor:pointer;user-select:none; }
+.toggle-cb { display:none; }
+.toggle-slider {
+  position:relative;width:42px;height:24px;
+  background:var(--border2);border-radius:99px;transition:background .2s;flex-shrink:0;
+}
+.toggle-slider::after {
+  content:'';position:absolute;top:4px;left:4px;
+  width:16px;height:16px;border-radius:50%;
+  background:white;transition:left .2s;box-shadow:0 1px 5px rgba(0,0,0,.2);
+}
+.toggle-cb:checked + .toggle-slider { background:var(--ok); }
+.toggle-cb:checked + .toggle-slider::after { left:22px; }
+.toggle-label { font-size:.82rem;font-weight:600;color:var(--muted);transition:color .2s;white-space:nowrap; }
+.toggle-cb:checked ~ .toggle-label { color:var(--ok); }
+
+/* ─── OVERLAY / MODAL ────────────────────────── */
+.overlay {
+  position:fixed;inset:0;background:rgba(30,27,74,.28);
+  backdrop-filter:blur(8px);display:flex;align-items:center;
+  justify-content:center;z-index:500;animation:fadeUp .2s ease;padding:1rem;
+}
+.overlay-card {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:22px;padding:2.25rem;width:100%;max-width:480px;
+  box-shadow:var(--shadow-lg);display:flex;flex-direction:column;gap:1.3rem;
+}
+.overlay-title { font-size:1.25rem;font-weight:800;color:var(--text);letter-spacing:-.35px; }
+.overlay-sub   { font-size:.875rem;color:var(--muted);margin-top:-.6rem; }
+
+/* ─── EMPTY STATE ────────────────────────────── */
+.empty { text-align:center;padding:4.5rem 1rem; }
+.empty-icon { font-size:2.75rem;margin-bottom:.9rem;opacity:.35; }
+.empty-text { font-size:.9rem;color:var(--muted); }
+
+/* ─── SETTINGS TOKEN DISPLAY ─────────────────── */
+.token-preview {
+  font-family:var(--mono);font-size:.72rem;color:var(--muted);
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:10px;padding:.65rem .9rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-top:.35rem;
+}
+
+/* ─── SCROLLBARS ─────────────────────────────── */
+::-webkit-scrollbar { width:5px;height:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2);border-radius:4px; }
+
+/* ─── ANIMATIONS ─────────────────────────────── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes spin { to{transform:rotate(360deg)} }
+.spin { animation:spin .75s linear infinite; }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)} 50%{box-shadow:0 0 0 6px rgba(16,185,129,.15)} }
+.pulse { animation:pulse-dot 2s ease-in-out infinite; }
+
+/* ─── RESPONSIVE ─────────────────────────────── */
+@media (max-width:1100px) { .main{padding:2.25rem 2.25rem;} }
+@media (max-width:900px)  { .grid-3{grid-template-columns:1fr 1fr;} }
+@media (max-width:768px) {
+  .sidebar { transform:translateX(calc(-1 * var(--sidebar-w))); }
+  .sidebar.open { transform:translateX(0);box-shadow:6px 0 40px rgba(124,58,237,.18); }
+  .mobile-topbar { display:flex; }
+  .main { margin-left:0;padding:calc(var(--topbar-h) + 1.75rem) 1.25rem 2.5rem; }
+  .grid-2,.grid-3 { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  .page-header { flex-direction:column;align-items:flex-start; }
+  .page-title { font-size:1.45rem; }
+  .stat-value { font-size:2.1rem; }
+  .tabs { width:100%; }
+  .tab-btn { flex:1;font-size:.8rem;padding:.55rem .5rem; }
+  .card { padding:1.5rem; }
+}
+@media (max-width:480px) {
+  .login-card { padding:2rem 1.5rem;border-radius:20px; }
+  .main { padding:calc(var(--topbar-h) + 1.25rem) 1rem 2rem; }
+  .btn { font-size:.85rem;padding:.65rem 1.1rem; }
+  .card { padding:1.25rem; }
+  .overlay-card { padding:1.75rem 1.35rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon">🌸</div>
+      <div>
+        <div class="login-brand-name">নীরা</div>
+        <div class="login-brand-tag">admin panel</div>
+      </div>
+    </div>
+    <div>
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to manage knowledge base &amp; users</div>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="admin@nira.app" autofocus/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••••"/>
+    </div>
+    <div class="login-err" id="login-err"></div>
+    <button class="btn btn-primary btn-full" id="login-btn" onclick="doLogin()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 8H3M6 5l-3 3 3 3"/><rect x="9" y="2" width="5" height="12" rx="1.5"/></svg>
+      Sign In
+    </button>
+  </div>
+  <div style="font-size:.78rem;color:var(--muted);font-family:var(--mono);">
+    Session expires on tab close · credentials never stored
+  </div>
+</div>
+
+<!-- ══ APP ══════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Mobile topbar -->
+  <div class="mobile-topbar">
+    <button class="hamburger" onclick="toggleSidebar()" aria-label="Open menu">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+    </button>
+    <div class="topbar-brand">
+      <div class="topbar-icon">🌸</div>
+      <span class="topbar-name">নীরা Admin</span>
+    </div>
+  </div>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon">🌸</div>
+      <div class="sb-brand-name">নীরা Admin</div>
+    </div>
+    <div class="sb-tag" id="sb-backend-url">localhost:8000</div>
+
+    <div class="nav-section">Ingest</div>
+    <div class="nav-item active" onclick="showPage('ingest',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 1v9M4 6l4 4 4-4"/><path d="M2 13h12"/></svg>
+      Ingest Data
+    </div>
+    <div class="nav-item" onclick="showPage('jobs',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5"/></svg>
+      Job History
+    </div>
+
+    <div class="nav-section" style="margin-top:.5rem;">Manage</div>
+    <div class="nav-item" onclick="showPage('users',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="5" r="2.5"/><path d="M1 14s1-4 5-4 5 4 5 4"/><circle cx="12" cy="5" r="2"/><path d="M14 14s-.4-2.5-2-3.2"/></svg>
+      Users
+    </div>
+    <div class="nav-item" onclick="showPage('ngos',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 13V6l6-4 6 4v7"/><rect x="5" y="8" width="3" height="5" rx=".5"/><rect x="9.5" y="8" width="2.5" height="3" rx=".5"/></svg>
+      NGOs
+    </div>
+    <div class="nav-item" onclick="showPage('stats',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="9" width="3" height="5" rx="1"/><rect x="6.5" y="5.5" width="3" height="8.5" rx="1"/><rect x="11" y="2" width="3" height="12" rx="1"/></svg>
+      Index Stats
+    </div>
+
+    <div class="nav-section" style="margin-top:.5rem;">System</div>
+    <div class="nav-item" onclick="showPage('settings',this)">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.05 3.05l1.06 1.06M11.89 4.11l1.06-1.06M3.05 12.95l1.06-1.06M11.9 11.89l1.06 1.06"/></svg>
+      Settings
+    </div>
+
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-dot pulse"></div>
+        <span id="sb-user-label">admin</span>
+      </div>
+      <button class="btn btn-ghost" style="width:100%;font-size:.875rem;" onclick="doLogout()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8h7M10 5l3 3-3 3"/><path d="M9 2H3a1 1 0 00-1 1v10a1 1 0 001 1h6"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── INGEST PAGE ── -->
+    <div class="page active" id="page-ingest">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ingest Data</div>
+          <div class="page-sub">Push URLs or PDFs into the Pinecone vector index</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('url',this)">🔗 URL</button>
+        <button class="tab-btn" onclick="switchTab('pdf',this)">📄 PDF Upload</button>
+      </div>
+
+      <!-- URL tab -->
+      <div class="tab-content active" id="tab-url">
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M5 8c0-2 1.5-4 3-4s3 2 3 4-1.5 4-3 4-3-2-3-4z"/><path d="M2 8h12"/></svg>
+            Scrape a Web Page
+          </div>
+          <div class="form-full field">
+            <label>Target URL</label>
+            <input type="url" id="url-input" placeholder="https://www.nhs.uk/pregnancy/..."/>
+            <span class="hint">Scrapes main text content → chunks → embeds → upserts to Pinecone</span>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Namespace</label>
+              <input type="text" id="url-ns" value="workspace"/>
+              <div class="ns-pills">
+                <span class="ns-pill active" onclick="setNs('url-ns',this,'workspace')">workspace</span>
+                <span class="ns-pill" onclick="setNs('url-ns',this,'en')">en</span>
+                <span class="ns-pill" onclick="setNs('url-ns',this,'ben')">ben</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Webhook <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+              <input type="url" id="url-webhook" placeholder="https://yourapp.com/webhook"/>
+            </div>
+          </div>
+          <div style="display:flex;gap:.75rem;align-items:center;margin-top:.5rem;">
+            <button class="btn btn-primary" id="url-submit-btn" onclick="submitUrl()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 1v9M4 6l4 4 4-4"/></svg>
+              Start Ingest
+            </button>
+            <button class="btn btn-ghost" onclick="clearJob('url')">Clear</button>
+          </div>
+          <div class="job-panel" id="url-job-panel" style="display:none;">
+            <div class="job-row">
+              <span class="job-id" id="url-job-id">—</span>
+              <span class="status-badge status-queued" id="url-job-status">queued</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar indeterminate" id="url-progress"></div></div>
+            <div class="job-log" id="url-job-log"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF tab -->
+      <div class="tab-content" id="tab-pdf">
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V5L9 1z"/><path d="M9 1v4h4"/></svg>
+            Upload PDF
+          </div>
+          <div class="form-full">
+            <div class="drop-zone" id="drop-zone"
+              ondragover="event.preventDefault();this.classList.add('drop-hover')"
+              ondragleave="this.classList.remove('drop-hover')"
+              ondrop="handleDrop(event)"
+              onclick="document.getElementById('pdf-file').click()">
+              <input type="file" id="pdf-file" accept="application/pdf" style="display:none" onchange="handleFileSelect(event)"/>
+              <div class="drop-zone-icon">📂</div>
+              <div class="drop-zone-label" id="drop-label">Drop PDF here or <span style="color:var(--accent);font-weight:600;">browse</span></div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="field">
+              <label>Namespace</label>
+              <input type="text" id="pdf-ns" value="workspace"/>
+              <div class="ns-pills">
+                <span class="ns-pill active" onclick="setNs('pdf-ns',this,'workspace')">workspace</span>
+                <span class="ns-pill" onclick="setNs('pdf-ns',this,'en')">en</span>
+                <span class="ns-pill" onclick="setNs('pdf-ns',this,'ben')">ben</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Webhook <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+              <input type="url" id="pdf-webhook" placeholder="https://yourapp.com/webhook"/>
+            </div>
+          </div>
+          <div class="alert alert-warn">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L1 13h14L8 2z"/><path d="M8 7v3M8 11.5v.5"/></svg>
+            Bangla/scanned PDFs require Tesseract OCR + Poppler on the server.
+          </div>
+          <div style="display:flex;gap:.75rem;align-items:center;">
+            <button class="btn btn-primary" id="pdf-submit-btn" onclick="submitPdf()" disabled>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 1v9M4 6l4 4 4-4"/></svg>
+              Upload &amp; Ingest
+            </button>
+            <button class="btn btn-ghost" onclick="clearJob('pdf')">Clear</button>
+          </div>
+          <div class="job-panel" id="pdf-job-panel" style="display:none;">
+            <div class="job-row">
+              <span class="job-id" id="pdf-job-id">—</span>
+              <span class="status-badge status-queued" id="pdf-job-status">queued</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar indeterminate" id="pdf-progress"></div></div>
+            <div class="job-log" id="pdf-job-log"></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-ingest -->
+
+    <!-- ── JOBS PAGE ── -->
+    <div class="page" id="page-jobs">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Job History</div>
+          <div class="page-sub">Background ingest tasks from this session</div>
+        </div>
+        <button class="btn btn-ghost" onclick="refreshJobs()">
+          <svg id="refresh-jobs-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 6A6 6 0 102 10"/><path d="M1 7l1 3 3-1"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="card" id="jobs-container">
+        <div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">No jobs yet — start an ingest first</div></div>
+      </div>
+    </div>
+
+    <!-- ── USERS PAGE ── -->
+    <div class="page" id="page-users">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Users</div>
+          <div class="page-sub" id="users-source-sub">Manage chatbot users</div>
+        </div>
+        <div class="ph-actions">
+          <span id="users-source-pill" class="source-pill source-pill-local" style="display:none;"></span>
+          <button class="btn btn-ghost" onclick="loadUsers()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 6A6 6 0 102 10"/><path d="M1 7l1 3 3-1"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-primary" onclick="openAddUser()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
+            Add User
+          </button>
+        </div>
+      </div>
+      <div id="users-err" class="alert alert-err" style="display:none;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5.5v.5"/></svg>
+        <span id="users-err-text"></span>
+      </div>
+      <div class="card">
+        <div class="empty" id="users-empty"><div class="empty-icon">👥</div><div class="empty-text">Loading users…</div></div>
+        <div class="table-wrap">
+          <table class="data-table" id="users-table" style="display:none;">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th></th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NGOs PAGE ── -->
+    <div class="page" id="page-ngos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">NGOs</div>
+          <div class="page-sub" id="ngos-source-sub">Manage partner NGO organizations</div>
+        </div>
+        <div class="ph-actions">
+          <span id="ngos-source-pill" class="source-pill source-pill-local" style="display:none;"></span>
+          <button class="btn btn-ghost" onclick="loadNgos()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 6A6 6 0 102 10"/><path d="M1 7l1 3 3-1"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-primary" onclick="openAddNgo()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
+            Add NGO
+          </button>
+        </div>
+      </div>
+      <div id="ngos-err" class="alert alert-err" style="display:none;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5.5v.5"/></svg>
+        <span id="ngos-err-text"></span>
+      </div>
+      <div class="card">
+        <div class="empty" id="ngos-empty"><div class="empty-icon">🏢</div><div class="empty-text">Loading NGOs…</div></div>
+        <div class="table-wrap">
+          <table class="data-table" id="ngos-table" style="display:none;">
+            <thead><tr><th>Organization</th><th>Email</th><th>Status</th><th>Added</th><th></th></tr></thead>
+            <tbody id="ngos-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STATS PAGE ── -->
+    <div class="page" id="page-stats">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Index Stats</div>
+          <div class="page-sub">Live Pinecone vector index overview</div>
+        </div>
+        <button class="btn btn-ghost" onclick="loadStats()">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13.5 6A6 6 0 102 10"/><path d="M1 7l1 3 3-1"/></svg>
+          Refresh
+        </button>
+      </div>
+      <div class="grid-3" style="margin-bottom:1.75rem;">
+        <div class="stat-card" style="--stat-color:var(--accent);">
+          <div class="stat-label">Total Vectors</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-delta">across all namespaces</div>
+        </div>
+        <div class="stat-card" style="--stat-color:#7c3aed;">
+          <div class="stat-label">Dimensions</div>
+          <div class="stat-value" id="stat-dim">—</div>
+          <div class="stat-delta">mistral-embed</div>
+        </div>
+        <div class="stat-card" style="--stat-color:var(--accent2);">
+          <div class="stat-label">Namespaces</div>
+          <div class="stat-value" id="stat-ns">—</div>
+          <div class="stat-delta">active partitions</div>
+        </div>
+      </div>
+      <div class="card" id="ns-card" style="display:none;">
+        <div class="card-title">Namespace Breakdown</div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Namespace</th><th>Vectors</th><th>% of Total</th></tr></thead>
+            <tbody id="ns-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="stats-err" class="alert alert-err" style="display:none;"></div>
+      <div id="stats-loading" class="empty"><div class="empty-text" style="font-family:var(--mono)">Loading stats…</div></div>
+    </div>
+
+    <!-- ── SETTINGS PAGE ── -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Settings</div>
+          <div class="page-sub">Configure external API and local backend connection</div>
+        </div>
+      </div>
+      <div class="grid-2" style="align-items:start;">
+
+        <!-- External API config -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L2 14l6-4 6 4L8 1z"/></svg>
+            External API (Users &amp; NGOs)
+          </div>
+
+          <div id="ext-status-badge" class="alert alert-info" style="margin-bottom:1.25rem;">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5.5v.5"/></svg>
+            <span>Not configured — using local backend only</span>
+          </div>
+
+          <div class="form-full field">
+            <label>API Base URL</label>
+            <input type="url" id="ext-api-url" placeholder="https://ygrdavlxunjmxgogxdud.supabase.co/functions/v1/api"/>
+            <span class="hint">Base URL without trailing slash. Users will be fetched from <code style="background:var(--surface2);padding:.1rem .3rem;border-radius:4px">BASE/users</code></span>
+          </div>
+          <div class="form-full field">
+            <label>Bearer Token</label>
+            <textarea id="ext-api-token" placeholder="Paste your access_token (JWT) here…" style="min-height:110px;font-size:.8rem;"></textarea>
+            <div class="token-preview" id="token-preview" style="display:none;"></div>
+          </div>
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.25rem;">
+            <button class="btn btn-primary" onclick="saveExtConfig()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg>
+              Save &amp; Connect
+            </button>
+            <button class="btn btn-ghost" onclick="testExtApi()">Test Connection</button>
+            <button class="btn btn-danger btn-sm" onclick="clearExtConfig()" style="margin-left:auto;">Clear</button>
+          </div>
+        </div>
+
+        <!-- Local backend config -->
+        <div class="card">
+          <div class="card-title">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="2"/><path d="M5 7h6M5 10h4"/></svg>
+            Local Backend (Ingest &amp; Auth)
+          </div>
+          <div class="form-full field">
+            <label>Backend URL</label>
+            <input type="url" id="backend-url-input" placeholder="http://localhost:8000"/>
+            <span class="hint">FastAPI ingest server address. Used for PDF/URL ingest and admin login.</span>
+          </div>
+          <button class="btn btn-ghost" onclick="saveBackendUrl()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg>
+            Save
+          </button>
+
+          <div style="margin-top:1.75rem;">
+            <div class="card-title" style="margin-bottom:.85rem;">How data sources work</div>
+            <div class="alert alert-info" style="margin-bottom:0;font-size:.84rem;">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 7v4M8 5.5v.5"/></svg>
+              <div>
+                <strong>External API configured:</strong> Users and NGOs are read/written via <code style="background:rgba(124,58,237,.1);padding:.1rem .3rem;border-radius:4px">GET /users</code> and <code style="background:rgba(124,58,237,.1);padding:.1rem .3rem;border-radius:4px">GET /ngos</code> with your bearer token.<br/><br/>
+                <strong>Not configured:</strong> Falls back to the local FastAPI backend automatically.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div><!-- /app -->
+
+<!-- ── ADD USER MODAL ── -->
+<div class="overlay" id="add-user-overlay" style="display:none;">
+  <div class="overlay-card">
+    <div>
+      <div class="overlay-title">Add New User</div>
+      <div class="overlay-sub">Creates a new user in the backend</div>
+    </div>
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="new-user-name" placeholder="Jane Doe"/>
+    </div>
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="new-user-email" placeholder="user@example.com"/>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Role</label>
+        <select id="new-user-role">
+          <option value="user">user</option>
+          <option value="admin">admin</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Phone <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+        <input type="text" id="new-user-phone" placeholder="+880..."/>
+      </div>
+    </div>
+    <div id="add-user-err" class="alert alert-err" style="display:none;"></div>
+    <div style="display:flex;gap:.75rem;">
+      <button class="btn btn-primary" id="create-user-btn" onclick="createUser()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
+        Create User
+      </button>
+      <button class="btn btn-ghost" onclick="closeAddUser()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD NGO MODAL ── -->
+<div class="overlay" id="add-ngo-overlay" style="display:none;">
+  <div class="overlay-card">
+    <div>
+      <div class="overlay-title">Add New NGO</div>
+      <div class="overlay-sub">Register a partner NGO organization</div>
+    </div>
+    <div class="field">
+      <label>Organization Name</label>
+      <input type="text" id="new-ngo-org" placeholder="e.g. Mothers Care Foundation"/>
+    </div>
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" id="new-ngo-email" placeholder="contact@ngo.org"/>
+    </div>
+    <div class="field">
+      <label>Initial Status</label>
+      <select id="new-ngo-enabled">
+        <option value="true">Enabled</option>
+        <option value="false">Disabled</option>
+      </select>
+    </div>
+    <div id="add-ngo-err" class="alert alert-err" style="display:none;"></div>
+    <div style="display:flex;gap:.75rem;">
+      <button class="btn btn-primary" id="create-ngo-btn" onclick="createNgo()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>
+        Add NGO
+      </button>
+      <button class="btn btn-ghost" onclick="closeAddNgo()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIG  (persisted in localStorage)
+══════════════════════════════════════════ */
+let BACKEND_URL = localStorage.getItem('backend_url') || 'http://localhost:8000';
+
+/* ══════════════════════════════════════════
+   SUPABASE API  — hardcoded credentials
+══════════════════════════════════════════ */
+const SUPABASE_BASE = 'https://ygrdavlxunjmxgogxdud.supabase.co';
+const SUPABASE_API  = SUPABASE_BASE + '/functions/v1/api';
+
+// Access token — starts with hardcoded value, auto-refreshed when it expires
+let SB_TOKEN = localStorage.getItem('sb_access_token') ||
+  'eyJhbGciOiJFUzI1NiIsImtpZCI6ImEzYjlmZmY3LWQ3NzAtNDUyYi1hN2IzLWMxYmViN2M4ZjNjMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3lncmRhdmx4dW5qbXhnb2d4ZHVkLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI2MTVkMGRmZS1lNzFmLTQ5ZDYtYTliMC1lYjNhMDUxNmE5NWYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgxMDk0NDY4LCJpYXQiOjE3ODEwOTA4NjgsImVtYWlsIjoiYWJyaW5lcmExNUBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoiYWJyaW5lcmExNUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiI2MTVkMGRmZS1lNzFmLTQ5ZDYtYTliMC1lYjNhMDUxNmE5NWYifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc4MTA5MDg2OH1dLCJzZXNzaW9uX2lkIjoiMDBjMzY2OGItMTlmYi00NWZhLWIwZDEtOGQ4ZmJjMGI0NzMxIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.g0kMioPAR5i5UO-48NIcpj1xAzN3UZl493x_mz9f-aCWIhBPXgjeXpHDVXJiVg0phhm5Vqhl6wzsfQBhO3n8EQ';
+let SB_REFRESH = localStorage.getItem('sb_refresh_token') || 'f77ugcijmeqx';
+
+// Auto-refresh: call the custom login endpoint to get a fresh token
+async function refreshSbToken() {
+  try {
+    // Use the same custom login endpoint — credentials are for the API service account
+    const r = await fetch(`${SUPABASE_API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'abrinera15@gmail.com', password: 'abrinera15@gmail.com' }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      SB_TOKEN  = d.access_token;
+      if (d.refresh_token) SB_REFRESH = d.refresh_token;
+      localStorage.setItem('sb_access_token',  SB_TOKEN);
+      localStorage.setItem('sb_refresh_token', SB_REFRESH);
+      console.log('Supabase token refreshed ✓');
+      return true;
+    }
+  } catch(e) { console.warn('Token refresh failed:', e); }
+  return false;
+}
+
+// Fetch wrapper — auto-refreshes on 401
+async function sbFetch(path, opts = {}) {
+  opts.headers = { ...opts.headers, 'Authorization': `Bearer ${SB_TOKEN}`, 'Content-Type': 'application/json' };
+  let r = await fetch(SUPABASE_API + path, opts);
+  if (r.status === 401) {
+    const ok = await refreshSbToken();
+    if (ok) {
+      opts.headers['Authorization'] = `Bearer ${SB_TOKEN}`;
+      r = await fetch(SUPABASE_API + path, opts);
+    }
+  }
+  return r;
+}
+
+// External API (bearer-token API for NGOs — kept for NGO section compatibility)
+const EXT = {
+  get url()   { return SUPABASE_API; },
+  get token() { return SB_TOKEN; },
+  get ok()    { return !!SB_TOKEN; },
+};
+function extHeaders() {
+  return { 'Authorization': `Bearer ${SB_TOKEN}`, 'Content-Type': 'application/json' };
+}
+
+async function extGet(path)          { return sbFetch(path).then(r => r.json()); }
+async function extPost(path, body)   { return sbFetch(path, {method:'POST',body:JSON.stringify(body)}).then(r => r.json()); }
+async function extPatch(path, body)  { return sbFetch(path, {method:'PATCH',body:JSON.stringify(body)}).then(r => r.json()); }
+async function extDelete(path)       { const r = await sbFetch(path, {method:'DELETE'}); if(!r.ok && r.status!==204) throw new Error(`API ${r.status}`); return true; }
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+const S = { token: null, email: null, jobs: {}, polls: {} };
+
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-err');
+  const btn   = document.getElementById('login-btn');
+  errEl.style.display = 'none';
+
+  if (!email || !pass) { errEl.textContent='Please enter email and password.'; errEl.style.display='block'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    const res  = await fetch(`${BACKEND_URL}/auth/login`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password: pass}),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      errEl.textContent = data.detail || 'Invalid credentials';
+      errEl.style.display = 'block';
+      document.getElementById('login-password').value = '';
+      document.getElementById('login-password').focus();
+    } else {
+      S.token = data.token; S.email = data.email;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('sb-user-label').textContent = email.split('@')[0];
+      document.getElementById('sb-backend-url').textContent = BACKEND_URL.replace(/https?:\/\//, '');
+      loadSettingsUI();
+      loadStats();
+      loadUsers();
+    }
+  } catch(e) {
+    errEl.textContent = `Cannot reach backend: ${e}`; errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 8H3M6 5l-3 3 3 3"/><rect x="9" y="2" width="5" height="12" rx="1.5"/></svg> Sign In`;
+}
+['login-email','login-password'].forEach(id =>
+  document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); })
+);
+async function doLogout() {
+  if (S.token) await fetch(`${BACKEND_URL}/auth/logout`, {method:'POST',headers:authHeaders()}).catch(()=>{});
+  S.token = null; S.email = null; S.jobs = {}; S.polls = {};
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  (el || event?.currentTarget)?.classList.add('active');
+  if (name === 'jobs')     refreshJobs();
+  if (name === 'stats')    loadStats();
+  if (name === 'users')    loadUsers();
+  if (name === 'ngos')     loadNgos();
+  if (name === 'settings') loadSettingsUI();
+  closeSidebar();
+}
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  (el || event?.currentTarget).classList.add('active');
+}
+function setNs(inputId, el, value) {
+  document.getElementById(inputId).value = value;
+  el.closest('.ns-pills').querySelectorAll('.ns-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ══════════════════════════════════════════
+   MOBILE SIDEBAR
+══════════════════════════════════════════ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+
+/* ══════════════════════════════════════════
+   LOCAL API HELPERS
+══════════════════════════════════════════ */
+const authHeaders = () => ({'Authorization':`Bearer ${S.token}`,'Content-Type':'application/json'});
+async function apiGet(path)       { return (await fetch(BACKEND_URL+path,{headers:authHeaders()})).json(); }
+async function apiPost(path,body) { return (await fetch(BACKEND_URL+path,{method:'POST',headers:authHeaders(),body:JSON.stringify(body)})).json(); }
+async function apiDelete(path)    { return (await fetch(BACKEND_URL+path,{method:'DELETE',headers:authHeaders()})).json(); }
+async function apiPostForm(path,fd) {
+  return (await fetch(BACKEND_URL+path,{method:'POST',headers:{'Authorization':`Bearer ${S.token}`},body:fd})).json();
+}
+
+/* ══════════════════════════════════════════
+   SOURCE PILL HELPER
+══════════════════════════════════════════ */
+function setSourcePill(type, source) {
+  const pill = document.getElementById(`${type}-source-pill`);
+  const sub  = document.getElementById(`${type}-source-sub`);
+  pill.style.display = 'inline-flex';
+  if (source === 'ext') {
+    pill.className = 'source-pill source-pill-ext';
+    pill.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 1L2 14l6-4 6 4L8 1z"/></svg> External API`;
+    if (sub) sub.textContent = 'Live data from external API · changes sync remotely';
+  } else {
+    pill.className = 'source-pill source-pill-local';
+    pill.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="12" height="10" rx="2"/></svg> Local backend`;
+    if (sub) sub.textContent = 'Data from local FastAPI backend';
+  }
+}
+
+/* ══════════════════════════════════════════
+   USERS
+══════════════════════════════════════════ */
+async function loadUsers() {
+  const errEl   = document.getElementById('users-err');
+  const emptyEl = document.getElementById('users-empty');
+  const tableEl = document.getElementById('users-table');
+  errEl.style.display = 'none';
+  emptyEl.style.display = 'block';
+  emptyEl.innerHTML = '<div class="empty-icon">👥</div><div class="empty-text">Loading…</div>';
+  tableEl.style.display = 'none';
+
+  // Always fetch from Supabase API (auto-refreshes token if expired)
+  let users = null;
+  try {
+    const r   = await sbFetch('/users');
+    const res = await r.json();
+    // Normalise: plain array OR { data: [...], total: N } OR { users: [...] }
+    if      (Array.isArray(res))       users = res;
+    else if (Array.isArray(res.data))  users = res.data;
+    else if (Array.isArray(res.users)) users = res.users;
+    else                               users = [];
+    setSourcePill('users', 'ext');
+  } catch(e) {
+    console.error('Supabase /users failed:', e);
+    document.getElementById('users-err-text').textContent = `Could not fetch users: ${e.message}`;
+    document.getElementById('users-err').style.display = 'flex';
+    users = [];
+  }
+
+  if (!Array.isArray(users) || users.length === 0) {
+    emptyEl.innerHTML = '<div class="empty-icon">👥</div><div class="empty-text">No users found</div>';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  tableEl.style.display = 'table';
+  document.getElementById('users-tbody').innerHTML = users.map(u => {
+    const name    = u.name || u.full_name || u.display_name || '—';
+    const email   = u.email || '—';
+    const initials= name !== '—' ? name.slice(0,2).toUpperCase() : (email !== '—' ? email.slice(0,2).toUpperCase() : '??');
+    const role    = u.role || 'user';
+    const enabled = u.enabled !== false;
+    const created = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
+    const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return `<tr>
+      <td><div class="user-info"><div class="user-avatar">${initials}</div><span>${name}</span></div></td>
+      <td style="font-family:var(--mono);font-size:.85rem;color:var(--text2)">${email}</td>
+      <td><span class="badge badge-${role}">${role}</span></td>
+      <td><span class="badge" style="background:${enabled?'var(--ok-lt)':'var(--danger-lt)'};color:${enabled?'var(--ok)':'var(--danger)'}">${enabled?'Active':'Disabled'}</span></td>
+      <td style="font-family:var(--mono);font-size:.8rem;color:var(--muted)">${created}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${safeName}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Remove user "${name}"? This cannot be undone.`)) return;
+  try {
+    const r = await sbFetch(`/users/${id}`, { method: 'DELETE' });
+    if (!r.ok && r.status !== 204) {
+      const txt = await r.text().catch(() => r.status);
+      throw new Error(txt);
+    }
+    loadUsers();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+}
+
+function openAddUser() { document.getElementById('add-user-overlay').style.display='flex'; document.getElementById('new-user-name').focus(); }
+function closeAddUser() {
+  document.getElementById('add-user-overlay').style.display = 'none';
+  document.getElementById('add-user-err').style.display = 'none';
+  ['new-user-name','new-user-email','new-user-phone'].forEach(id => document.getElementById(id).value = '');
+}
+async function createUser() {
+  const name  = document.getElementById('new-user-name').value.trim();
+  const email = document.getElementById('new-user-email').value.trim();
+  const role  = document.getElementById('new-user-role').value;
+  const phone = document.getElementById('new-user-phone').value.trim();
+  const errEl = document.getElementById('add-user-err');
+  errEl.style.display = 'none';
+  if (!name)  { errEl.textContent='Name is required';  errEl.style.display='flex'; return; }
+  if (!email) { errEl.textContent='Email is required'; errEl.style.display='flex'; return; }
+  const btn = document.getElementById('create-user-btn');
+  setLoading(btn, true, 'Creating…');
+  try {
+    const payload = {name, email, role, phone: phone || null};
+    if (EXT.ok) { await extPost('/users', payload); }
+    else {
+      const res = await fetch(`${BACKEND_URL}/users`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+      if (!res.ok) { const d=await res.json(); errEl.textContent=d.detail||'Failed'; errEl.style.display='flex'; }
+    }
+    closeAddUser(); loadUsers();
+  } catch(e) { errEl.textContent=String(e); errEl.style.display='flex'; }
+  setLoading(btn, false, `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg> Create User`);
+}
+document.getElementById('add-user-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddUser(); });
+
+/* ══════════════════════════════════════════
+   NGOs
+══════════════════════════════════════════ */
+async function loadNgos() {
+  const errEl   = document.getElementById('ngos-err');
+  const emptyEl = document.getElementById('ngos-empty');
+  const tableEl = document.getElementById('ngos-table');
+  errEl.style.display = 'none';
+  emptyEl.style.display = 'block';
+  emptyEl.innerHTML = '<div class="empty-icon">🏢</div><div class="empty-text">Loading…</div>';
+  tableEl.style.display = 'none';
+
+  let ngos = null, source = 'local';
+
+  if (EXT.ok) {
+    try {
+      const res = await extGet('/ngos');
+      ngos   = Array.isArray(res) ? res : (res.ngos || res.data || res.results || []);
+      source = 'ext';
+    } catch(e) {
+      console.warn('External API /ngos failed, falling back to local:', e);
+    }
+  }
+
+  if (ngos === null) {
+    try { ngos = await apiGet('/ngos'); source = 'local'; }
+    catch(e) { ngos = []; }
+  }
+
+  setSourcePill('ngos', source);
+
+  if (!Array.isArray(ngos) || ngos.length === 0) {
+    emptyEl.innerHTML = '<div class="empty-icon">🏢</div><div class="empty-text">No NGOs yet — add the first one</div>';
+    return;
+  }
+  emptyEl.style.display = 'none';
+  tableEl.style.display = 'table';
+  document.getElementById('ngos-tbody').innerHTML = ngos.map(n => {
+    const org     = n.organization_name || n.name || '—';
+    const email   = n.email || '—';
+    const enabled = n.enabled !== false;
+    const created = n.created_at ? new Date(n.created_at).toLocaleDateString() : '—';
+    return `<tr>
+      <td><div class="user-info"><div class="user-avatar" style="background:linear-gradient(135deg,#059669,#10b981)">${org.slice(0,2).toUpperCase()}</div><span>${org}</span></div></td>
+      <td style="font-family:var(--mono);font-size:.85rem;color:var(--text2)">${email}</td>
+      <td>
+        <label class="toggle-wrap">
+          <input type="checkbox" class="toggle-cb" ${enabled?'checked':''} onchange="toggleNgo('${n.id}',this)"/>
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">${enabled?'Enabled':'Disabled'}</span>
+        </label>
+      </td>
+      <td style="font-family:var(--mono);font-size:.8rem;color:var(--muted)">${created}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteNgo('${n.id}','${org.replace(/'/g,"\\'")}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleNgo(id, cb) {
+  const enabled = cb.checked;
+  try {
+    if (EXT.ok) { await extPatch(`/ngos/${id}`, {enabled}); }
+    else        { await fetch(`${BACKEND_URL}/ngos/${id}/toggle`,{method:'PATCH',headers:authHeaders()}); }
+    cb.parentElement.querySelector('.toggle-label').textContent = enabled ? 'Enabled' : 'Disabled';
+  } catch(e) { cb.checked = !cb.checked; alert('Toggle failed: ' + e); }
+}
+async function deleteNgo(id, name) {
+  if (!confirm(`Remove NGO "${name}"? This cannot be undone.`)) return;
+  try {
+    if (EXT.ok) { await extDelete(`/ngos/${id}`); }
+    else        { await apiDelete(`/ngos/${id}`); }
+    loadNgos();
+  } catch(e) { alert('Delete failed: ' + e); }
+}
+function openAddNgo() { document.getElementById('add-ngo-overlay').style.display='flex'; document.getElementById('new-ngo-org').focus(); }
+function closeAddNgo() {
+  document.getElementById('add-ngo-overlay').style.display = 'none';
+  document.getElementById('add-ngo-err').style.display = 'none';
+  ['new-ngo-org','new-ngo-email'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-ngo-enabled').value = 'true';
+}
+async function createNgo() {
+  const org     = document.getElementById('new-ngo-org').value.trim();
+  const email   = document.getElementById('new-ngo-email').value.trim();
+  const enabled = document.getElementById('new-ngo-enabled').value === 'true';
+  const errEl   = document.getElementById('add-ngo-err');
+  errEl.style.display = 'none';
+  if (!org)   { errEl.textContent='Organization name is required'; errEl.style.display='flex'; return; }
+  if (!email) { errEl.textContent='Email is required';             errEl.style.display='flex'; return; }
+  const btn = document.getElementById('create-ngo-btn');
+  setLoading(btn, true, 'Creating…');
+  try {
+    const payload = {organization_name: org, email, enabled};
+    if (EXT.ok) { await extPost('/ngos', payload); }
+    else {
+      const res = await fetch(`${BACKEND_URL}/ngos`,{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)});
+      if (!res.ok) { const d=await res.json(); errEl.textContent=d.detail||'Failed'; errEl.style.display='flex'; }
+    }
+    closeAddNgo(); loadNgos();
+  } catch(e) { errEl.textContent=String(e); errEl.style.display='flex'; }
+  setLoading(btn, false, `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg> Add NGO`);
+}
+document.getElementById('add-ngo-overlay').addEventListener('click', e => { if(e.target===e.currentTarget) closeAddNgo(); });
+
+/* ══════════════════════════════════════════
+   STATS
+══════════════════════════════════════════ */
+async function loadStats() {
+  document.getElementById('stats-loading').style.display = 'block';
+  document.getElementById('stats-err').style.display = 'none';
+  document.getElementById('ns-card').style.display = 'none';
+  try {
+    const data = await apiGet('/stats');
+    document.getElementById('stats-loading').style.display = 'none';
+    if (data.detail || data.error) {
+      const el = document.getElementById('stats-err');
+      el.style.display = 'flex'; el.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 7v4"/></svg> ${data.detail||data.error}`;
+      return;
+    }
+    const total = data.total_vector_count ?? data.totalVectorCount ?? '—';
+    const dim   = data.dimension ?? '1024';
+    const nsMap = data.namespaces ?? {};
+    document.getElementById('stat-total').textContent = typeof total==='number' ? total.toLocaleString() : total;
+    document.getElementById('stat-dim').textContent   = dim;
+    document.getElementById('stat-ns').textContent    = Object.keys(nsMap).length;
+    if (Object.keys(nsMap).length) {
+      document.getElementById('ns-card').style.display = 'block';
+      document.getElementById('ns-tbody').innerHTML = Object.entries(nsMap).map(([ns,info])=>{
+        const c = info.vectorCount ?? info.vector_count ?? 0;
+        const p = total>0 ? ((c/total)*100).toFixed(1) : '—';
+        return `<tr><td><span class="tag">${ns}</span></td><td style="font-family:var(--mono)">${c.toLocaleString()}</td><td style="font-family:var(--mono);color:var(--muted)">${p}%</td></tr>`;
+      }).join('');
+    }
+  } catch(e) {
+    document.getElementById('stats-loading').style.display = 'none';
+    const el = document.getElementById('stats-err');
+    el.style.display = 'flex'; el.textContent = `Could not load stats: ${e}`;
+  }
+}
+
+/* ══════════════════════════════════════════
+   INGEST — URL
+══════════════════════════════════════════ */
+async function submitUrl() {
+  const url  = document.getElementById('url-input').value.trim();
+  const ns   = document.getElementById('url-ns').value.trim() || 'workspace';
+  const hook = document.getElementById('url-webhook').value.trim();
+  if (!url) return;
+  const btn = document.getElementById('url-submit-btn');
+  setLoading(btn, true, 'Starting…');
+  showJobPanel('url', null, 'queued');
+  try {
+    const body = {url, namespace: ns};
+    if (hook) body.webhook_url = hook;
+    const data = await apiPost('/ingest/url', body);
+    if (data.job_id) {
+      showJobPanel('url', data.job_id, 'queued');
+      S.jobs[data.job_id] = {id:data.job_id,type:'url',payload:{url,namespace:ns},status:'queued',created_at:new Date().toISOString()};
+      pollJob(data.job_id, 'url');
+    } else { appendLog('url','err', data.detail||JSON.stringify(data)); }
+  } catch(e) { appendLog('url','err',String(e)); }
+  setLoading(btn, false, `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 1v9M4 6l4 4 4-4"/></svg> Start Ingest`);
+}
+
+/* ══════════════════════════════════════════
+   INGEST — PDF
+══════════════════════════════════════════ */
+let selectedFile = null;
+function handleFileSelect(e) { const f=e.target.files[0]; if(f) setFile(f); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drop-hover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type==='application/pdf') setFile(f);
+}
+function setFile(f) {
+  selectedFile = f;
+  document.getElementById('drop-label').innerHTML = `<span style="color:var(--accent);">✓ ${f.name}</span> <span style="color:var(--muted)">${(f.size/1024).toFixed(0)} KB</span>`;
+  document.getElementById('pdf-submit-btn').disabled = false;
+}
+async function submitPdf() {
+  if (!selectedFile) return;
+  const ns   = document.getElementById('pdf-ns').value.trim() || 'workspace';
+  const hook = document.getElementById('pdf-webhook').value.trim();
+  const btn  = document.getElementById('pdf-submit-btn');
+  setLoading(btn, true, 'Uploading…');
+  showJobPanel('pdf', null, 'queued');
+  try {
+    const fd = new FormData();
+    fd.append('file', selectedFile); fd.append('namespace', ns);
+    if (hook) fd.append('webhook_url', hook);
+    const data = await apiPostForm('/ingest/pdf', fd);
+    if (data.job_id) {
+      showJobPanel('pdf', data.job_id, 'queued');
+      S.jobs[data.job_id] = {id:data.job_id,type:'pdf',payload:{filename:selectedFile.name,namespace:ns},status:'queued',created_at:new Date().toISOString()};
+      pollJob(data.job_id, 'pdf');
+    } else { appendLog('pdf','err', data.detail||JSON.stringify(data)); }
+  } catch(e) { appendLog('pdf','err',String(e)); }
+  setLoading(btn, false, `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 1v9M4 6l4 4 4-4"/></svg> Upload &amp; Ingest`);
+}
+function clearJob(type) {
+  document.getElementById(`${type}-job-panel`).style.display = 'none';
+  if (type==='url') document.getElementById('url-input').value='';
+  if (type==='pdf') {
+    selectedFile=null;
+    document.getElementById('pdf-file').value='';
+    document.getElementById('drop-label').innerHTML=`Drop PDF here or <span style="color:var(--accent);font-weight:600;">browse</span>`;
+    document.getElementById('pdf-submit-btn').disabled=true;
+  }
+}
+
+/* ══════════════════════════════════════════
+   JOB POLLING
+══════════════════════════════════════════ */
+function showJobPanel(type, jobId, status) {
+  document.getElementById(`${type}-job-panel`).style.display = 'block';
+  if (jobId) document.getElementById(`${type}-job-id`).textContent = jobId.slice(0,10)+'…';
+  setJobStatus(type, status);
+  document.getElementById(`${type}-job-log`).innerHTML = '';
+  const bar = document.getElementById(`${type}-progress`);
+  bar.classList.add('indeterminate'); bar.style.width=''; bar.style.background='';
+}
+function setJobStatus(type, status) {
+  const el = document.getElementById(`${type}-job-status`);
+  el.className = `status-badge status-${status}`; el.textContent = status;
+}
+function appendLog(type, cls, msg) {
+  const el = document.getElementById(`${type}-job-log`);
+  const t  = new Date().toLocaleTimeString('en-GB');
+  el.innerHTML += `<div><span class="log-time">${t}</span><span class="log-${cls}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+function pollJob(jobId, type) {
+  if (S.polls[jobId]) clearInterval(S.polls[jobId]);
+  appendLog(type,'info',`Job ${jobId.slice(0,10)}… accepted`);
+  S.polls[jobId] = setInterval(async()=>{
+    try {
+      const job = await apiGet(`/jobs/${jobId}`);
+      setJobStatus(type, job.status);
+      if (S.jobs[jobId]) Object.assign(S.jobs[jobId], job);
+      if (job.status==='running') appendLog(type,'info','Processing…');
+      if (job.status==='done') {
+        clearInterval(S.polls[jobId]);
+        const bar=document.getElementById(`${type}-progress`);
+        bar.classList.remove('indeterminate'); bar.style.width='100%';
+        const r=job.result||{};
+        appendLog(type,'ok',`✓ Done — ${r.chunks??'?'} chunks · ${r.vectors??'?'} vectors upserted`);
+      }
+      if (job.status==='failed') {
+        clearInterval(S.polls[jobId]);
+        const bar=document.getElementById(`${type}-progress`);
+        bar.classList.remove('indeterminate'); bar.style.width='100%'; bar.style.background='var(--danger)';
+        appendLog(type,'err',`✗ ${job.error||'Unknown error'}`);
+      }
+    } catch(e) { appendLog(type,'err',`Poll error: ${e}`); }
+  }, 2500);
+}
+
+/* ══════════════════════════════════════════
+   JOB HISTORY
+══════════════════════════════════════════ */
+async function refreshJobs() {
+  const icon = document.getElementById('refresh-jobs-icon');
+  icon.classList.add('spin');
+  const container = document.getElementById('jobs-container');
+  try { const all=await apiGet('/jobs'); if(Array.isArray(all)&&all.length) all.forEach(j=>{S.jobs[j.id]=j;}); } catch(e){}
+  const jobs = Object.values(S.jobs);
+  if (!jobs.length) {
+    container.innerHTML=`<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">No jobs this session</div></div>`;
+    icon.classList.remove('spin'); return;
+  }
+  jobs.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+  container.innerHTML=`<div class="table-wrap"><table class="data-table">
+    <thead><tr><th>Job ID</th><th>Type</th><th>Source</th><th>Namespace</th><th>Status</th><th>Time</th></tr></thead>
+    <tbody>${jobs.map(j=>`<tr>
+      <td><span style="font-family:var(--mono);font-size:.8rem;color:var(--accent)">${j.id.slice(0,10)}…</span></td>
+      <td><span class="tag">${j.type||'—'}</span></td>
+      <td style="font-family:var(--mono);font-size:.78rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${j.payload?.url||j.payload?.filename||'—'}</td>
+      <td><span class="tag">${j.payload?.namespace||'workspace'}</span></td>
+      <td><span class="status-badge status-${j.status}">${j.status}</span></td>
+      <td style="font-family:var(--mono);font-size:.75rem;color:var(--muted)">${j.created_at?new Date(j.created_at).toLocaleTimeString():'—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  icon.classList.remove('spin');
+}
+
+/* ══════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════ */
+function loadSettingsUI() {
+  // Pre-fill with Supabase URL if nothing custom is saved
+  const storedUrl = localStorage.getItem('ext_api_url') || '';
+  document.getElementById('ext-api-url').value   = storedUrl || SUPABASE_API;
+  document.getElementById('ext-api-token').value = EXT.token;
+  document.getElementById('backend-url-input').value = BACKEND_URL;
+  updateExtStatusBadge();
+  updateTokenPreview();
+}
+function updateExtStatusBadge() {
+  const el = document.getElementById('ext-status-badge');
+  if (EXT.token) {
+    el.className = 'alert alert-ok';
+    el.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l4 4 6-6"/></svg><span>Connected to Supabase API · <span style="font-family:var(--mono);font-size:.8rem">${EXT.url}</span></span>`;
+  } else {
+    el.className = 'alert alert-warn';
+    el.innerHTML = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 2L1 13h14L8 2z"/><path d="M8 7v3M8 11.5v.5"/></svg><span>⚠️ Bearer token not set — paste your Supabase <code style="background:rgba(0,0,0,.08);padding:.1rem .3rem;border-radius:4px">access_token</code> below to load users.</span>`;
+  }
+}
+function updateTokenPreview() {
+  const tok = document.getElementById('ext-api-token').value.trim();
+  const el  = document.getElementById('token-preview');
+  if (tok.length > 20) {
+    el.style.display = 'block';
+    el.textContent   = tok.slice(0,24) + '…' + tok.slice(-8);
+  } else { el.style.display = 'none'; }
+}
+document.getElementById('ext-api-token').addEventListener('input', updateTokenPreview);
+
+function saveExtConfig() {
+  const url = document.getElementById('ext-api-url').value.trim().replace(/\/$/, '');
+  const tok = document.getElementById('ext-api-token').value.trim();
+  localStorage.setItem('ext_api_url',   url);
+  localStorage.setItem('ext_api_token', tok);
+  updateExtStatusBadge();
+  alert(url && tok ? '✅ External API config saved! Users and NGOs will now be fetched from your API.' : 'Config cleared — using local backend.');
+}
+async function testExtApi() {
+  const url = document.getElementById('ext-api-url').value.trim().replace(/\/$/, '');
+  const tok = document.getElementById('ext-api-token').value.trim();
+  if (!url || !tok) { alert('Enter API URL and token first.'); return; }
+  try {
+    const r = await fetch(`${url}/users`, { headers: {'Authorization':`Bearer ${tok}`,'Content-Type':'application/json'} });
+    if (r.ok) {
+      const data = await r.json();
+      const count = Array.isArray(data) ? data.length : (data.users||data.data||[]).length;
+      alert(`✅ Connection successful! Fetched ${count} user(s) from GET /users.`);
+    } else {
+      const text = await r.text();
+      alert(`⚠️ API responded HTTP ${r.status}.\n\n${text.slice(0,200)}`);
+    }
+  } catch(e) { alert(`❌ Cannot reach API: ${e}`); }
+}
+function clearExtConfig() {
+  if (!confirm('Clear external API config? Will revert to local backend.')) return;
+  localStorage.removeItem('ext_api_url');
+  localStorage.removeItem('ext_api_token');
+  document.getElementById('ext-api-url').value   = '';
+  document.getElementById('ext-api-token').value = '';
+  updateExtStatusBadge();
+  updateTokenPreview();
+}
+function saveBackendUrl() {
+  const url = document.getElementById('backend-url-input').value.trim().replace(/\/$/, '');
+  BACKEND_URL = url || 'http://localhost:8000';
+  localStorage.setItem('backend_url', BACKEND_URL);
+  document.getElementById('sb-backend-url').textContent = BACKEND_URL.replace(/https?:\/\//,'');
+  alert('✅ Backend URL saved.');
+}
+
+/* ══════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════ */
+function setLoading(btn, on, offHtml) {
+  if (on) {
+    btn.disabled = true;
+    btn.innerHTML = `<svg class="spin" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="5" stroke-dasharray="18" stroke-dashoffset="6"/></svg> ${offHtml}`;
+  } else { btn.disabled=false; btn.innerHTML=offHtml; }
+}
+</script>
+</body>
+</html>

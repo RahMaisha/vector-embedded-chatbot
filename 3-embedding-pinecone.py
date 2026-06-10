@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 from pinecone import Pinecone
 from dotenv import load_dotenv
 from typing import List, Dict
+from utils.language_detector import detect_language
 
 load_dotenv()
 
@@ -129,6 +130,7 @@ def extract_paragraphs(elem) -> List[str]:
 all_chunks: List[Dict] = []
 for doc in documents:
     paragraphs = extract_paragraphs(doc["soup_elem"])
+    language = detect_language(url=doc["url"])
     for i, para in enumerate(paragraphs):
         safe_id = (
             doc["url"]
@@ -144,7 +146,7 @@ for doc in documents:
                 "title": doc["title"],
                 "text": para,
                 "paragraph_index": i,
-                "total_paragraphs": len(paragraphs),
+                "language": language,
             },
         })
     print(f"  {len(paragraphs):>3} paragraphs — {doc['title'][:60]}")

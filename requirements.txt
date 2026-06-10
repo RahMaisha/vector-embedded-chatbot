@@ -8,3 +8,4 @@ lancedb
 streamlit
 tiktoken
 mistralai
+flask

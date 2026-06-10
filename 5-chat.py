@@ -1,6 +1,6 @@
 import streamlit as st
 import lancedb
-from mistralai.client import Mistral
+from mistralai import Mistral
 from dotenv import load_dotenv
 import os
 
@@ -20,7 +20,7 @@ def init_db():
         LanceDB table object
     """
     db = lancedb.connect("data/lancedb")
-    return db.open_table("docling")
+    return db.open_table("pregnancy_guide")  # matches 3-embedding-simple.py
 
 
 def get_context(query: str, table, num_results: int = 5) -> str:
@@ -38,29 +38,21 @@ def get_context(query: str, table, num_results: int = 5) -> str:
     contexts = []
 
     for _, row in results.iterrows():
-        # Extract metadata
-        filename = row["metadata"]["filename"]
-        page_numbers = row["metadata"]["page_numbers"]
-        title = row["metadata"]["title"]
+        # 3-embedding-simple.py stores flat columns: source, title, chunk_index
+        source = row.get("source", "")
+        title  = row.get("title", "Untitled section")
 
-        # Build source citation
-        source_parts = []
-        if filename:
-            source_parts.append(filename)
-        if page_numbers:
-            source_parts.append(f"p. {', '.join(str(p) for p in page_numbers)}")
-
-        source = f"\nSource: {' - '.join(source_parts)}"
+        citation = f"\nSource: {source}"
         if title:
-            source += f"\nTitle: {title}"
+            citation += f"\nTitle: {title}"
 
-        contexts.append(f"{row['text']}{source}")
+        contexts.append(f"{row['text']}{citation}")
 
     return "\n\n".join(contexts)
 
 
 def get_chat_response(messages, context: str) -> str:
-    """Get streaming response from OpenAI API.
+    """Get streaming response from Mistral API.
 
     Args:
         messages: Chat history
@@ -69,114 +61,88 @@ def get_chat_response(messages, context: str) -> str:
     Returns:
         str: Model's response
     """
-    system_prompt = f"""You are a helpful assistant that answers questions based on the provided context.
-    Use only the information from the context to answer questions. If you're unsure or the context
-    doesn't contain the relevant information, say so.
-    
-    Context:
-    {context}
-    """
+    system_prompt = f"""You are a helpful pregnancy health assistant that answers questions
+based on the provided context. Use only the information from the context to answer questions.
+If you're unsure or the context doesn't contain the relevant information, say so clearly.
+
+Context:
+{context}
+"""
 
     messages_with_context = [{"role": "system", "content": system_prompt}, *messages]
 
-    # Create the streaming response
-    stream = client.chat.completions.create(
+    stream = client.chat.stream(
         model="mistral-large-latest",
         messages=messages_with_context,
         temperature=0.7,
-        stream=True,
     )
 
-    # Use Streamlit's built-in streaming capability
-    response = st.write_stream(stream)
-    return response
+    # Stream the response token by token
+    response_text = ""
+    placeholder = st.empty()
+    for chunk in stream:
+        delta = chunk.data.choices[0].delta.content or ""
+        response_text += delta
+        placeholder.markdown(response_text + "▌")
+    placeholder.markdown(response_text)
+    return response_text
 
 
-# Initialize Streamlit app
-st.title("📚 Document Q&A")
+# ── Streamlit UI ───────────────────────────────────────────────
 
-# Initialize session state for chat history
+st.title("🤰 Pregnancy Health Assistant")
+st.caption("Powered by NHS & MedlinePlus · Mistral AI · LanceDB")
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Initialize database connection
 table = init_db()
 
-# Display chat messages
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
 # Chat input
-if prompt := st.chat_input("Ask a question about the document"):
-    # Display user message
+if prompt := st.chat_input("Ask about pregnancy nutrition, diet, vitamins…"):
     with st.chat_message("user"):
         st.markdown(prompt)
-
-    # Add user message to chat history
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # Get relevant context
-    with st.status("Searching document...", expanded=False) as status:
+    with st.status("Searching knowledge base…", expanded=False):
         context = get_context(prompt, table)
-        st.markdown(
-            """
+
+        st.markdown("""
             <style>
-            .search-result {
-                margin: 10px 0;
-                padding: 10px;
-                border-radius: 4px;
-                background-color: #f0f2f6;
-            }
-            .search-result summary {
-                cursor: pointer;
-                color: #0f52ba;
-                font-weight: 500;
-            }
-            .search-result summary:hover {
-                color: #1e90ff;
-            }
-            .metadata {
-                font-size: 0.9em;
-                color: #666;
-                font-style: italic;
-            }
+            .search-result { margin:10px 0; padding:10px; border-radius:4px; background:#f0f2f6; }
+            .search-result summary { cursor:pointer; color:#0f52ba; font-weight:500; }
+            .search-result summary:hover { color:#1e90ff; }
+            .meta { font-size:0.9em; color:#666; font-style:italic; }
             </style>
-        """,
-            unsafe_allow_html=True,
-        )
+        """, unsafe_allow_html=True)
 
         st.write("Found relevant sections:")
         for chunk in context.split("\n\n"):
-            # Split into text and metadata parts
             parts = chunk.split("\n")
             text = parts[0]
-            metadata = {
-                line.split(": ")[0]: line.split(": ")[1]
+            meta = {
+                line.split(": ", 1)[0]: line.split(": ", 1)[1]
                 for line in parts[1:]
                 if ": " in line
             }
-
-            source = metadata.get("Source", "Unknown source")
-            title = metadata.get("Title", "Untitled section")
-
-            st.markdown(
-                f"""
+            source = meta.get("Source", "Unknown source")
+            title  = meta.get("Title", "Untitled section")
+            st.markdown(f"""
                 <div class="search-result">
                     <details>
                         <summary>{source}</summary>
-                        <div class="metadata">Section: {title}</div>
-                        <div style="margin-top: 8px;">{text}</div>
+                        <div class="meta">Section: {title}</div>
+                        <div style="margin-top:8px;">{text}</div>
                     </details>
                 </div>
-            """,
-                unsafe_allow_html=True,
-            )
+            """, unsafe_allow_html=True)
 
-    # Display assistant response first
     with st.chat_message("assistant"):
-        # Get model response with streaming
         response = get_chat_response(st.session_state.messages, context)
 
-    # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

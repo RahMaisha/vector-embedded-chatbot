@@ -22,6 +22,7 @@ import requests
 from pinecone import Pinecone
 from dotenv import load_dotenv
 from typing import List, Dict
+from utils.language_detector import detect_language
 import warnings
 warnings.filterwarnings("ignore")  # suppress font errors
 
@@ -104,6 +105,7 @@ def extract_with_pdfplumber(pdf_path: str) -> List[Dict]:
     """Extract text using pdfplumber (works for normal PDFs)."""
     chunks = []
     filename = os.path.basename(pdf_path)
+    language = detect_language(filename=filename)
 
     with pdfplumber.open(pdf_path) as pdf:
         meta  = pdf.metadata or {}
@@ -124,6 +126,7 @@ def extract_with_pdfplumber(pdf_path: str) -> List[Dict]:
 
             for i, para in enumerate(paragraphs):
                 safe_id = re.sub(r"[^a-zA-Z0-9_-]", "_", filename)
+                language = detect_language(filename=filename, text=para)
                 chunks.append({
                     "id": f"{safe_id}_p{page_num}_{i}"[:512],
                     "text": para,
@@ -135,6 +138,7 @@ def extract_with_pdfplumber(pdf_path: str) -> List[Dict]:
                         "total_pages":     total_pages,
                         "paragraph_index": i,
                         "extraction":      "pdfplumber",
+                        "language":        language,
                     },
                 })
 
@@ -149,6 +153,7 @@ def extract_with_ocr(pdf_path: str) -> List[Dict]:
     chunks = []
     filename = os.path.basename(pdf_path)
     title    = filename.replace(".pdf", "")
+    language = detect_language(filename=filename)
 
     print(f"  🔍 Running OCR ({OCR_LANG})... this may take a minute per page")
 
@@ -165,6 +170,7 @@ def extract_with_ocr(pdf_path: str) -> List[Dict]:
 
             for i, para in enumerate(paragraphs):
                 safe_id = re.sub(r"[^a-zA-Z0-9_-]", "_", filename)
+                language = detect_language(filename=filename, text=para)
                 chunks.append({
                     "id": f"{safe_id}_ocr_p{page_num}_{i}"[:512],
                     "text": para,
@@ -176,6 +182,7 @@ def extract_with_ocr(pdf_path: str) -> List[Dict]:
                         "total_pages":     total_pages,
                         "paragraph_index": i,
                         "extraction":      "ocr",
+                        "language":        language,
                     },
                 })
 

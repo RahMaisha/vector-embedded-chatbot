@@ -12,7 +12,7 @@ db = lancedb.connect(uri)
 # Load the table
 # --------------------------------------------------------------
 
-table = db.open_table("docling")
+table = db.open_table("pregnancy_guide")
 
 
 # --------------------------------------------------------------

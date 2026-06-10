@@ -41,14 +41,28 @@ def embed_query(text: str) -> list:
                 raise RuntimeError(f"Embedding failed: {e}")
 
 
-def get_context(query: str, top_k: int = 5) -> list:
-    """Search Pinecone for relevant chunks."""
+def get_context(query: str, top_k: int = 5, language: str = None) -> list:
+    """
+    Search Pinecone for relevant chunks.
+    
+    Args:
+        query: Search query text
+        top_k: Number of results to return
+        language: Optional language filter (e.g., "en", "ben")
+    """
     query_embedding = embed_query(query)
+    
+    # Build filter for language if specified
+    filter_dict = None
+    if language:
+        filter_dict = {"language": {"$eq": language}}
+    
     results = index.query(
         vector=query_embedding,
         top_k=top_k,
         namespace=NAMESPACE,
-        include_metadata=True
+        include_metadata=True,
+        filter=filter_dict
     )
     return results.matches
 
